@@ -19,8 +19,8 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
-    "typecheck": "tsc --noEmit && npm run typecheck --prefix relay",
-    "test": "npm test --prefix relay"
+    "typecheck": "tsc --noEmit && npm run typecheck --prefix relay && npm run typecheck --prefix agent",
+    "test": "npm test --prefix relay && npm test --prefix agent"
   },
   "private": true
 }
