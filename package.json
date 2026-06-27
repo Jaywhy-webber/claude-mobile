@@ -13,7 +13,8 @@
     "react": "19.2.3",
     "react-native": "0.85.3",
     "react-native-safe-area-context": "~5.7.0",
-    "react-native-screens": "4.25.2"
+    "react-native-screens": "4.25.2",
+    "react-native-webview": "13.16.1"
   },
   "devDependencies": {
     "@testing-library/react-native": "^14.0.0",
@@ -34,7 +35,9 @@
   },
   "jest": {
     "preset": "jest-expo",
-    "setupFiles": ["./jest.setup.ts"],
+    "setupFiles": [
+      "./jest.setup.ts"
+    ],
     "testPathIgnorePatterns": [
       "/node_modules/",
       "/relay/",

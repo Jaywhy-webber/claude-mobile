@@ -13,6 +13,17 @@ jest.mock('expo-camera', () => ({
   useCameraPermissions: () => [{ granted: false }, jest.fn()],
 }));
 
+jest.mock('react-native-webview', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return {
+    __esModule: true,
+    default: React.forwardRef((props: any, ref: any) => {
+      return React.createElement(View, { testID: 'webview' });
+    }),
+  };
+});
+
 jest.mock('../session');
 const mockedSession = session as jest.Mocked<typeof session>;
 
