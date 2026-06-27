@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor, act } from '@testing-library/react-native';
+import { render, waitFor, act, fireEvent } from '@testing-library/react-native';
 import { TerminalScreen } from '../screens/TerminalScreen';
 import * as session from '../session';
 
@@ -223,6 +223,102 @@ describe('TerminalScreen', () => {
     expect(ws.send).toHaveBeenCalledWith(
       JSON.stringify({ type: 'resize', cols: 80, rows: 24 }),
     );
+  });
+
+  it('renders the toolbar with all buttons', async () => {
+    mockedSession.getSession.mockResolvedValue({
+      relay: 'wss://relay.example.com',
+      token: 'test-token',
+    });
+
+    const { getByText } = await render(<TerminalScreen />);
+
+    await waitFor(() => {
+      expect(getByText('Ctrl+C')).toBeTruthy();
+    });
+
+    expect(getByText('Tab')).toBeTruthy();
+    expect(getByText('↑')).toBeTruthy();
+    expect(getByText('↓')).toBeTruthy();
+    expect(getByText('Esc')).toBeTruthy();
+    expect(getByText('Enter')).toBeTruthy();
+  });
+
+  it('sends Ctrl+C byte through WebSocket when toolbar button is tapped', async () => {
+    mockedSession.getSession.mockResolvedValue({
+      relay: 'wss://relay.example.com',
+      token: 'test-token',
+    });
+
+    const { getByText } = await render(<TerminalScreen />);
+
+    await waitFor(() => {
+      expect(MockWebSocket.instances.length).toBe(1);
+    });
+
+    const ws = MockWebSocket.instances[0];
+    await act(async () => {
+      ws.simulateOpen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Ctrl+C'));
+    });
+
+    expect(ws.send).toHaveBeenCalledWith('\x03');
+  });
+
+  it('sends arrow key escape sequences through WebSocket', async () => {
+    mockedSession.getSession.mockResolvedValue({
+      relay: 'wss://relay.example.com',
+      token: 'test-token',
+    });
+
+    const { getByText } = await render(<TerminalScreen />);
+
+    await waitFor(() => {
+      expect(MockWebSocket.instances.length).toBe(1);
+    });
+
+    const ws = MockWebSocket.instances[0];
+    await act(async () => {
+      ws.simulateOpen();
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('↑'));
+    });
+    expect(ws.send).toHaveBeenCalledWith('\x1b[A');
+
+    await act(async () => {
+      fireEvent.press(getByText('↓'));
+    });
+    expect(ws.send).toHaveBeenCalledWith('\x1b[B');
+  });
+
+  it('sends native keyboard text input through WebSocket', async () => {
+    mockedSession.getSession.mockResolvedValue({
+      relay: 'wss://relay.example.com',
+      token: 'test-token',
+    });
+
+    const { getByTestId } = await render(<TerminalScreen />);
+
+    await waitFor(() => {
+      expect(MockWebSocket.instances.length).toBe(1);
+    });
+
+    const ws = MockWebSocket.instances[0];
+    await act(async () => {
+      ws.simulateOpen();
+    });
+
+    const input = getByTestId('keyboard-input');
+    await act(async () => {
+      fireEvent.changeText(input, 'hello');
+    });
+
+    expect(ws.send).toHaveBeenCalledWith('hello');
   });
 
   it('does not clear terminal state on reconnection', async () => {
